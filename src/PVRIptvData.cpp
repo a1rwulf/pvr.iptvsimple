@@ -1,4 +1,7 @@
 /*
+ *      Copyright (C) 2017 Wolfgang Haupt
+ *      http://github.com/a1rwulf/pvr.omniyontv/
+ *
  *      Copyright (C) 2013-2015 Anton Fedchin
  *      http://github.com/afedchin/xbmc-addon-iptvsimple/
  *
@@ -31,9 +34,9 @@
 #include "rapidxml/rapidxml.hpp"
 #include "PVRIptvData.h"
 #include "p8-platform/util/StringUtils.h"
+#include "CurlHelper.h"
+#include "rapidjson/document.h"
 
-#define M3U_START_MARKER        "#EXTM3U"
-#define M3U_INFO_MARKER         "#EXTINF"
 #define TVG_INFO_ID_MARKER      "tvg-id="
 #define TVG_INFO_NAME_MARKER    "tvg-name="
 #define TVG_INFO_LOGO_MARKER    "tvg-logo="
@@ -296,202 +299,87 @@ bool PVRIptvData::LoadEPG(time_t iStart, time_t iEnd)
 
 bool PVRIptvData::LoadPlayList(void)
 {
-  if (m_strM3uUrl.empty())
+  std::string strChannelsFromUrl("");
+  strChannelsFromUrl = grabChannels();
+
+  XBMC->Log(LOG_DEBUG, "Channel response: '%s'", strChannelsFromUrl.c_str());
+
+  rapidjson::Document doc;
+  doc.Parse(strChannelsFromUrl.c_str());
+
+  if (!doc.IsObject())
   {
-    XBMC->Log(LOG_NOTICE, "Playlist file path is not configured. Channels not loaded.");
+    XBMC->Log(LOG_ERROR, "Cannot load channels - Invalid json format");
+    return false;
+  }
+  
+  if (!doc.HasMember("groups"))
+  {
+    XBMC->Log(LOG_ERROR, "Cannot load channels - json response has no groups");
     return false;
   }
 
-  std::string strPlaylistContent;
-  if (!GetCachedFileContents(M3U_FILE_NAME, m_strM3uUrl, strPlaylistContent, g_bCacheM3U))
+  if (!doc["groups"].IsArray())
   {
-    XBMC->Log(LOG_ERROR, "Unable to load playlist file '%s':  file is missing or empty.", m_strM3uUrl.c_str());
+    XBMC->Log(LOG_ERROR, "Cannot load channels - groups element is not an array");
     return false;
   }
 
-  std::stringstream stream(strPlaylistContent);
-
-  /* load channels */
-  bool bFirst = true;
-
-  int iChannelIndex     = 0;
-  int iUniqueGroupId    = 0;
-  int iCurrentGroupId   = 0;
-  int iChannelNum       = g_iStartNumber;
-  int iEPGTimeShift     = 0;
-
-  PVRIptvChannel tmpChannel;
-  tmpChannel.strTvgId       = "";
-  tmpChannel.strChannelName = "";
-  tmpChannel.strTvgName     = "";
-  tmpChannel.strTvgLogo     = "";
-  tmpChannel.iTvgShift      = 0;
-
-  char szLine[4096];
-  while(stream.getline(szLine, 4096))
+  for (auto& g : doc["groups"].GetArray())
   {
-    std::string strLine(szLine);
-    strLine = StringUtils::TrimRight(strLine, " \t\r\n");
-    strLine = StringUtils::TrimLeft(strLine, " \t");
-
-    XBMC->Log(LOG_DEBUG, "Read line: '%s'", strLine.c_str());
-
-    if (strLine.empty())
+    PVRIptvChannelGroup group;
+    if (g["id"].IsInt() && g["name"].IsString())
     {
-      continue;
+      group.iGroupId = g["id"].GetInt();
+      group.strGroupName = g["name"].GetString();
+      group.bRadio = false;      //we do not support radio right now
+      m_groups.push_back(group);
     }
-
-    if (bFirst)
+    else
     {
-      bFirst = false;
-      if (StringUtils::Left(strLine, 3) == "\xEF\xBB\xBF")
-      {
-        strLine.erase(0, 3);
-      }
-      if (StringUtils::Left(strLine, (int)strlen(M3U_START_MARKER)) == M3U_START_MARKER)
-      {
-        double fTvgShift = atof(ReadMarkerValue(strLine, TVG_INFO_SHIFT_MARKER).c_str());
-        iEPGTimeShift = (int) (fTvgShift * 3600.0);
-        continue;
-      }
-      else
-      {
-        XBMC->Log(LOG_ERROR,
-                  "URL '%s' missing %s descriptor on line 1, attempting to "
-                  "parse it anyway.",
-                  m_strM3uUrl.c_str(), M3U_START_MARKER);
-      }
-    }
-
-    if (StringUtils::Left(strLine, (int)strlen(M3U_INFO_MARKER)) == M3U_INFO_MARKER)
-    {
-      bool        bRadio       = false;
-      double      fTvgShift    = 0;
-      std::string strChnlNo    = "";
-      std::string strChnlName  = "";
-      std::string strTvgId     = "";
-      std::string strTvgName   = "";
-      std::string strTvgLogo   = "";
-      std::string strTvgShift  = "";
-      std::string strGroupName = "";
-      std::string strRadio     = "";
-
-      // parse line
-      int iColon = (int)strLine.find(':');
-      int iComma = (int)strLine.rfind(',');
-      if (iColon >= 0 && iComma >= 0 && iComma > iColon)
-      {
-        // parse name
-        iComma++;
-        strChnlName = StringUtils::Right(strLine, (int)strLine.size() - iComma);
-        strChnlName = StringUtils::Trim(strChnlName);
-        tmpChannel.strChannelName = XBMC->UnknownToUTF8(strChnlName.c_str());
-
-        // parse info
-        std::string strInfoLine = StringUtils::Mid(strLine, ++iColon, --iComma - iColon);
-
-        strTvgId      = ReadMarkerValue(strInfoLine, TVG_INFO_ID_MARKER);
-        strTvgName    = ReadMarkerValue(strInfoLine, TVG_INFO_NAME_MARKER);
-        strTvgLogo    = ReadMarkerValue(strInfoLine, TVG_INFO_LOGO_MARKER);
-        strChnlNo     = ReadMarkerValue(strInfoLine, TVG_INFO_CHNO_MARKER);
-        strGroupName  = ReadMarkerValue(strInfoLine, GROUP_NAME_MARKER);
-        strRadio      = ReadMarkerValue(strInfoLine, RADIO_MARKER);
-        strTvgShift   = ReadMarkerValue(strInfoLine, TVG_INFO_SHIFT_MARKER);
-
-        if (strTvgId.empty())
-        {
-          char buff[255];
-          sprintf(buff, "%d", atoi(strInfoLine.c_str()));
-          strTvgId.append(buff);
-        }
-        if (strTvgLogo.empty())
-        {
-          strTvgLogo = strChnlName;
-        }
-        fTvgShift = atof(strTvgShift.c_str());
-
-        if (!strChnlNo.empty()) 
-        {
-          iChannelNum = atoi(strChnlNo.c_str());
-        }
-
-        bRadio                = !StringUtils::CompareNoCase(strRadio, "true");
-        tmpChannel.strTvgId   = strTvgId;
-        tmpChannel.strTvgName = XBMC->UnknownToUTF8(strTvgName.c_str());
-        tmpChannel.strTvgLogo = XBMC->UnknownToUTF8(strTvgLogo.c_str());
-        tmpChannel.iTvgShift  = (int)(fTvgShift * 3600.0);
-        tmpChannel.bRadio     = bRadio;
-
-        if (strTvgShift.empty())
-        {
-          tmpChannel.iTvgShift = iEPGTimeShift;
-        }
-
-        if (!strGroupName.empty())
-        {
-          strGroupName = XBMC->UnknownToUTF8(strGroupName.c_str());
-
-          PVRIptvChannelGroup * pGroup;
-          if ((pGroup = FindGroup(strGroupName)) == NULL)
-          {
-            PVRIptvChannelGroup group;
-            group.strGroupName = strGroupName;
-            group.iGroupId = ++iUniqueGroupId;
-            group.bRadio = bRadio;
-
-            m_groups.push_back(group);
-            iCurrentGroupId = iUniqueGroupId;
-          }
-          else
-          {
-            iCurrentGroupId = pGroup->iGroupId;
-          }
-        }
-      }
-    }
-    else if (strLine[0] != '#')
-    {
-      XBMC->Log(LOG_DEBUG,
-                "Found URL: '%s' (current channel name: '%s')",
-                strLine.c_str(), tmpChannel.strChannelName.c_str());
-
-      PVRIptvChannel channel;
-      channel.iUniqueId         = GetChannelId(tmpChannel.strChannelName.c_str(), strLine.c_str());
-      channel.iChannelNumber    = iChannelNum;
-      channel.strTvgId          = tmpChannel.strTvgId;
-      channel.strChannelName    = tmpChannel.strChannelName;
-      channel.strTvgName        = tmpChannel.strTvgName;
-      channel.strTvgLogo        = tmpChannel.strTvgLogo;
-      channel.iTvgShift         = tmpChannel.iTvgShift;
-      channel.bRadio            = tmpChannel.bRadio;
-      channel.strStreamURL      = strLine;
-      channel.iEncryptionSystem = 0;
-
-      iChannelNum++;
-
-      if (iCurrentGroupId > 0) 
-      {
-        channel.bRadio = m_groups.at(iCurrentGroupId - 1).bRadio;
-        m_groups.at(iCurrentGroupId - 1).members.push_back(iChannelIndex);
-      }
-
-      m_channels.push_back(channel);
-      iChannelIndex++;
-
-      tmpChannel.strTvgId       = "";
-      tmpChannel.strChannelName = "";
-      tmpChannel.strTvgName     = "";
-      tmpChannel.strTvgLogo     = "";
-      tmpChannel.iTvgShift      = 0;
-      tmpChannel.bRadio         = false;
+      XBMC->Log(LOG_ERROR, "Group format is wrong - skip group, this may be ok");
     }
   }
 
-  stream.clear();
+  int iChannelIndex = 0;
+  if (!doc.HasMember("channels"))
+  {
+    XBMC->Log(LOG_ERROR, "Cannot load channels - json response has no channels");
+    return false;
+  }
+
+  if (!doc["channels"].IsArray())
+  {
+    XBMC->Log(LOG_ERROR, "Cannot load channels - channels member is not an array");
+    return false;
+  }
+
+  for (auto& c : doc["channels"].GetArray())
+  {
+    PVRIptvChannel channel;
+    if (c["name"].IsString() && c["url"].IsString())
+      channel.iUniqueId = GetChannelId(c["name"].GetString(), c["url"].GetString());
+    else
+      channel.iUniqueId = -1;
+
+    channel.strChannelName    = c["name"].IsString() ? c["name"].GetString() : "";
+    channel.iChannelNumber    = c["channelnumber"].IsInt() ? c["channelnumber"].GetInt() : 0;
+    channel.strStreamURL      = c["url"].IsString() ? c["url"].GetString() : "";
+    channel.strTvgName        = c["name"].IsString() ? c["name"].GetString() : "";
+    channel.strTvgLogo        = c["logo"].IsString() ? c["logo"].GetString() : "";
+    channel.strTvgId          = "";
+    channel.iTvgShift         = 0;
+    channel.bRadio            = false;
+    channel.iEncryptionSystem = 0;
+
+    m_groups.at(c["group"].GetInt() - 1).members.push_back(iChannelIndex);
+    m_channels.push_back(channel);
+    iChannelIndex++;
+  }
 
   if (m_channels.size() == 0)
   {
-    XBMC->Log(LOG_ERROR, "Unable to load channels from file '%s':  file is corrupted.", m_strM3uUrl.c_str());
+    XBMC->Log(LOG_ERROR, "Unable to load channels - response parsed but no channels?");
     return false;
   }
 
