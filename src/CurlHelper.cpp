@@ -45,7 +45,7 @@ std::string grabChannels()
   curl_handle = curl_easy_init();
 
   /* specify URL to get */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, "http://localhost:5000/channels/all");
+  curl_easy_setopt(curl_handle, CURLOPT_URL, "http://omniyon.local/rest/tv/channels/kodi");
 
   /* send all data to this function  */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);
