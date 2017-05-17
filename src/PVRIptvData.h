@@ -1,5 +1,7 @@
 #pragma once
 /*
+ *      Copyright (C) 2017 Wolfgang Haupt
+ *
  *      Copyright (C) 2013-2015 Anton Fedchin
  *      http://github.com/afedchin/xbmc-addon-iptvsimple/
  *

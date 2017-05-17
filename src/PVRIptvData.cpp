@@ -1,6 +1,5 @@
 /*
  *      Copyright (C) 2017 Wolfgang Haupt
- *      http://github.com/a1rwulf/pvr.omniyontv/
  *
  *      Copyright (C) 2013-2015 Anton Fedchin
  *      http://github.com/afedchin/xbmc-addon-iptvsimple/
