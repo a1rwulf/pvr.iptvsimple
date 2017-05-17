@@ -53,6 +53,8 @@ extern bool        g_bCacheM3U;
 extern bool        g_bCacheEPG;
 extern int         g_iEPGLogos;
 
+extern std::string g_strRestUrl;
+
 extern std::string PathCombine(const std::string &strPath, const std::string &strFileName);
 extern std::string GetClientFilePath(const std::string &strFileName);
 extern std::string GetUserFilePath(const std::string &strFileName);

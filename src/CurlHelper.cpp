@@ -49,7 +49,7 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
   return realsize;
 }
 
-std::string grabChannels()
+std::string grabChannels(std::string url)
 {
   CURL *curl_handle;
   CURLcode res;
@@ -66,7 +66,7 @@ std::string grabChannels()
   curl_handle = curl_easy_init();
 
   /* specify URL to get */
-  curl_easy_setopt(curl_handle, CURLOPT_URL, "http://omniyon.local/rest/tv/channels/kodi");
+  curl_easy_setopt(curl_handle, CURLOPT_URL, url.c_str());
 
   /* send all data to this function  */
   curl_easy_setopt(curl_handle, CURLOPT_WRITEFUNCTION, WriteMemoryCallback);

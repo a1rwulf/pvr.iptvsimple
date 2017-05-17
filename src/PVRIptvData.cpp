@@ -84,6 +84,8 @@ PVRIptvData::PVRIptvData(void)
   m_iLastStart    = 0;
   m_iLastEnd      = 0;
 
+  m_strRestUrl    = g_strRestUrl;
+
   m_channels.clear();
   m_groups.clear();
   m_epg.clear();
@@ -299,7 +301,7 @@ bool PVRIptvData::LoadEPG(time_t iStart, time_t iEnd)
 bool PVRIptvData::LoadPlayList(void)
 {
   std::string strChannelsFromUrl("");
-  strChannelsFromUrl = grabChannels();
+  strChannelsFromUrl = grabChannels(m_strRestUrl);
 
   XBMC->Log(LOG_DEBUG, "Channel response: '%s'", strChannelsFromUrl.c_str());
 

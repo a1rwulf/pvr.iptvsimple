@@ -51,6 +51,7 @@ std::string g_strClientPath = "";
 CHelper_libXBMC_addon *XBMC = NULL;
 CHelper_libXBMC_pvr   *PVR  = NULL;
 
+std::string g_strRestUrl    = "";
 std::string g_strTvgPath    = "";
 std::string g_strM3UPath    = "";
 std::string g_strLogoPath   = "";
@@ -94,77 +95,11 @@ void ADDON_ReadSettings(void)
 {
   char buffer[1024];
   int iPathType = 0;
-  if (!XBMC->GetSetting("m3uPathType", &iPathType)) 
-  {
-    iPathType = 1;
-  }
-  if (iPathType)
-  {
-    if (XBMC->GetSetting("m3uUrl", &buffer)) 
-    {
-      g_strM3UPath = buffer;
-    }
-    if (!XBMC->GetSetting("m3uCache", &g_bCacheM3U))
-    {
-      g_bCacheM3U = true;
-    }
-  }
-  else
-  {
-    if (XBMC->GetSetting("m3uPath", &buffer)) 
-    {
-      g_strM3UPath = buffer;
-    }
-    g_bCacheM3U = false;
-  }
-  if (!XBMC->GetSetting("startNum", &g_iStartNumber)) 
-  {
-    g_iStartNumber = 1;
-  }
-  if (!XBMC->GetSetting("epgPathType", &iPathType)) 
-  {
-    iPathType = 1;
-  }
-  if (iPathType)
-  {
-    if (XBMC->GetSetting("epgUrl", &buffer)) 
-    {
-      g_strTvgPath = buffer;
-    }
-    if (!XBMC->GetSetting("epgCache", &g_bCacheEPG))
-    {
-      g_bCacheEPG = true;
-    }
-  }
-  else
-  {
-    if (XBMC->GetSetting("epgPath", &buffer)) 
-    {
-      g_strTvgPath = buffer;
-    }
-    g_bCacheEPG = false;
-  }
-  float fShift;
-  if (XBMC->GetSetting("epgTimeShift", &fShift))
-  {
-    g_iEPGTimeShift = (int)(fShift * 3600.0); // hours to seconds
-  }
-  if (!XBMC->GetSetting("epgTSOverride", &g_bTSOverride))
-  {
-    g_bTSOverride = true;
-  }
-  if (!XBMC->GetSetting("logoPathType", &iPathType)) 
-  {
-    iPathType = 1;
-  }
-  if (XBMC->GetSetting(iPathType ? "logoBaseUrl" : "logoPath", &buffer)) 
-  {
-    g_strLogoPath = buffer;
-  }
 
-  // Logos from EPG
-  if (!XBMC->GetSetting("logoFromEpg", &g_iEPGLogos))
-    g_iEPGLogos = 0;
+  if (XBMC->GetSetting("restapiurl", &buffer))
+  {
+    g_strRestUrl = buffer;
+  }
 }
 
 ADDON_STATUS ADDON_Create(void* hdl, void* props)
