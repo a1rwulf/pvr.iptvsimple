@@ -968,18 +968,14 @@ void PVRIptvData::ReloadEPG(const char * strNewPath)
   }
 }
 
-void PVRIptvData::ReloadPlayList(const char * strNewPath)
+void PVRIptvData::ReloadPlayList()
 {
-  if (strNewPath != m_strM3uUrl)
-  {
-    m_strM3uUrl = strNewPath;
-    m_channels.clear();
+  m_channels.clear();
 
-    if (LoadPlayList())
-    {
-      PVR->TriggerChannelUpdate();
-      PVR->TriggerChannelGroupsUpdate();
-    }
+  if (LoadPlayList())
+  {
+    PVR->TriggerChannelUpdate();
+    PVR->TriggerChannelGroupsUpdate();
   }
 }
 
