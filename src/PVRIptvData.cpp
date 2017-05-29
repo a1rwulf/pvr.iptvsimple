@@ -374,7 +374,9 @@ bool PVRIptvData::LoadPlayList(void)
     channel.bRadio            = false;
     channel.iEncryptionSystem = 0;
 
-    m_groups.at(c["group"].GetInt() - 1).members.push_back(iChannelIndex);
+    if (c["group"].IsInt())
+      m_groups.at(c["group"].GetInt() - 1).members.push_back(iChannelIndex);
+
     m_channels.push_back(channel);
     iChannelIndex++;
   }
