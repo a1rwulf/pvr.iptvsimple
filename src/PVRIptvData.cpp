@@ -364,7 +364,7 @@ bool PVRIptvData::LoadPlayList(void)
       channel.iUniqueId = -1;
 
     channel.strChannelName    = c["name"].IsString() ? c["name"].GetString() : "";
-    channel.iChannelNumber    = c["channelnumber"].IsInt() ? c["channelnumber"].GetInt() : 0;
+    channel.iChannelNumber    = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : 0;
     channel.strStreamURL      = c["url"].IsString() ? c["url"].GetString() : "";
     channel.strLogoPath       = c["logo"].IsString() ? c["logo"].GetString() : "";
     channel.strTvgName        = c["name"].IsString() ? c["name"].GetString() : "";
