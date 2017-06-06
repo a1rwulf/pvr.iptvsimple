@@ -358,10 +358,8 @@ bool PVRIptvData::LoadPlayList(void)
   for (auto& c : doc["channels"].GetArray())
   {
     PVRIptvChannel channel;
-    if (c["name"].IsString() && c["url"].IsString())
-      channel.iUniqueId = GetChannelId(c["name"].GetString(), c["url"].GetString());
-    else
-      channel.iUniqueId = -1;
+
+    channel.iUniqueId = c["channel_id"].IsInt() ? c["channel_id"].GetInt() : -1;
 
     channel.strChannelName    = c["name"].IsString() ? c["name"].GetString() : "";
     channel.iChannelNumber    = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : 0;
