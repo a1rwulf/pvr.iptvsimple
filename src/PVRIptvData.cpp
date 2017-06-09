@@ -303,8 +303,6 @@ bool PVRIptvData::LoadPlayList(void)
   std::string strChannelsFromUrl("");
   strChannelsFromUrl = grabChannels(m_strRestUrl);
 
-  XBMC->Log(LOG_DEBUG, "Channel response: '%s'", strChannelsFromUrl.c_str());
-
   rapidjson::Document doc;
   doc.Parse(strChannelsFromUrl.c_str());
 
