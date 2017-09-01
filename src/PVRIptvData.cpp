@@ -968,6 +968,7 @@ void PVRIptvData::ReloadEPG(const char * strNewPath)
 void PVRIptvData::ReloadPlayList()
 {
   m_channels.clear();
+  m_groups.clear();
 
   if (LoadPlayList())
   {
