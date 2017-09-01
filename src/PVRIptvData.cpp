@@ -972,8 +972,8 @@ void PVRIptvData::ReloadPlayList()
 
   if (LoadPlayList())
   {
-    PVR->TriggerChannelUpdate();
     PVR->TriggerChannelGroupsUpdate();
+    PVR->TriggerChannelUpdate();
   }
 }
 
