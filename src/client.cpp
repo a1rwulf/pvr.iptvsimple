@@ -51,6 +51,7 @@ CHelper_libXBMC_addon *XBMC = NULL;
 CHelper_libXBMC_pvr   *PVR  = NULL;
 
 std::string g_strRestUrl    = "";
+std::string g_strEpgRestUrl    = "";
 std::string g_strTvgPath    = "";
 std::string g_strM3UPath    = "";
 std::string g_strLogoPath   = "";
@@ -98,6 +99,11 @@ void ADDON_ReadSettings(void)
   if (XBMC->GetSetting("restapiurl", &buffer))
   {
     g_strRestUrl = buffer;
+  }
+
+  if (XBMC->GetSetting("epgapiurl", &buffer))
+  {
+    g_strEpgRestUrl = buffer;
   }
 }
 

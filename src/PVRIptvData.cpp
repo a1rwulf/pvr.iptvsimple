@@ -85,6 +85,7 @@ PVRIptvData::PVRIptvData(void)
   m_iLastEnd      = 0;
 
   m_strRestUrl    = g_strRestUrl;
+  m_strEpgRestUrl = g_strEpgRestUrl;
 
   m_channels.clear();
   m_groups.clear();
@@ -92,6 +93,15 @@ PVRIptvData::PVRIptvData(void)
   m_genres.clear();
 
   LoadPlayList();
+
+  for (auto const& channel : m_channels)
+  {
+    PVRIptvEpgChannel epgChannel;
+    epgChannel.strId = std::to_string(channel.iChannelNumber);
+    epgChannel.strName = channel.strChannelName;
+
+    m_epg.push_back(epgChannel);
+  }
 }
 
 void *PVRIptvData::Process(void)
@@ -105,6 +115,64 @@ PVRIptvData::~PVRIptvData(void)
   m_groups.clear();
   m_epg.clear();
   m_genres.clear();
+}
+
+bool PVRIptvData::LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, time_t iEnd)
+{
+  if (m_epg.size() == 0)
+  {
+    XBMC->Log(LOG_ERROR, "EPG channels not found.");
+    return false;
+  }
+
+  std::string strEpgFromUrl("");
+  std::string strRestUrl = m_strEpgRestUrl;
+  strRestUrl += "?channel_number=" + std::to_string(channel.iChannelNumber);
+  strRestUrl += "&start_time=" + std::to_string(iStart);
+  strRestUrl += "&end_time=" + std::to_string(iEnd);
+  strEpgFromUrl = grabEpg(strRestUrl);
+
+  rapidjson::Document doc;
+  doc.Parse(strEpgFromUrl.c_str());
+
+  if (!doc.IsArray())
+  {
+    XBMC->Log(LOG_ERROR, "Cannot load epg - Invalid json format");
+    return false;
+  }
+
+  PVRIptvEpgChannel *epg = NULL;
+  if ((epg = FindEpg(std::to_string(channel.iChannelNumber))) == NULL)
+  {
+    XBMC->Log(LOG_ERROR, "Cannot find epg channel");
+    return false;
+  }
+
+  int iBroadCastId = 0;
+  for (auto& event : doc.GetArray())
+  {
+    PVRIptvEpgEntry entry;
+    entry.iBroadcastId = ++iBroadCastId;
+    entry.iGenreType = 0;
+    entry.iGenreSubType = 0;
+    entry.strPlotOutline = "";
+    entry.startTime = event["programStartTime"].IsInt() ? event["programStartTime"].GetInt() : 0;
+    entry.endTime = event["programEndTime"].IsInt() ? event["programEndTime"].GetInt() : 0;
+
+    entry.strTitle = event["programTitle"].IsString() ? event["programTitle"].GetString() : "";
+    entry.strPlot = event["programDescLong"].IsString() ? event["programDescLong"].GetString() : "";
+    entry.strGenreString = event["categories"].IsString() ? event["categories"].GetString() : "";
+    entry.strIconPath = "";
+
+    epg->epg.push_back(entry);
+  }
+
+  //TODO check what to do with the genres
+  //LoadGenres();
+
+  XBMC->Log(LOG_NOTICE, "EPG Loaded.");
+
+  return true;
 }
 
 bool PVRIptvData::LoadEPG(time_t iStart, time_t iEnd)
@@ -564,16 +632,16 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     if (myChannel->iUniqueId != (int) channel.iUniqueId)
       continue;
 
-    if (iStart > m_iLastStart || iEnd > m_iLastEnd)
-    {
+    //if (iStart > m_iLastStart || iEnd > m_iLastEnd)
+    //{
       // reload EPG for new time interval only
-      LoadEPG(iStart, iEnd);
+      LoadEPGForChannel(channel, iStart, iEnd);
       {
         // doesn't matter is epg loaded or not we shouldn't try to load it for same interval
         m_iLastStart = iStart;
         m_iLastEnd = iEnd;
       }
-    }
+    //}
 
     PVRIptvEpgChannel *epg;
     if ((epg = FindEpgForChannel(*myChannel)) == NULL || epg->epg.size() == 0)

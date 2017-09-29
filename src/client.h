@@ -54,6 +54,7 @@ extern bool        g_bCacheEPG;
 extern int         g_iEPGLogos;
 
 extern std::string g_strRestUrl;
+extern std::string g_strEpgRestUrl;
 
 extern std::string PathCombine(const std::string &strPath, const std::string &strFileName);
 extern std::string GetClientFilePath(const std::string &strFileName);

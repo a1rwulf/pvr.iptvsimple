@@ -3,5 +3,6 @@
   <category label="30000">
     <setting id="sep1" label="30000" type="lsep"/>
     <setting id="restapiurl" type="text" label="30001" default="http://omniyon.local/rest/tv/channels/kodi" />
+    <setting id="epgapiurl" type="text" label="30001" default="http://omniyon.local/rest/tv/programs/kodi" />
   </category>
 </settings>

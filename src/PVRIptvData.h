@@ -103,6 +103,7 @@ public:
 protected:
   virtual bool                 LoadPlayList(void);
   virtual bool                 LoadEPG(time_t iStart, time_t iEnd);
+  virtual bool                 LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, time_t iEnd);
   virtual bool                 LoadGenres(void);
   virtual int                  GetFileContents(std::string& url, std::string &strContent);
   virtual PVRIptvChannel*      FindChannel(const std::string &strId, const std::string &strName);
@@ -136,4 +137,5 @@ private:
   std::vector<PVRIptvEpgGenre>      m_genres;
 
   std::string                       m_strRestUrl;
+  std::string                       m_strEpgRestUrl;
 };
