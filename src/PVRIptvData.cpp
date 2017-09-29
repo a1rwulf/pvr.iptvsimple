@@ -357,7 +357,9 @@ bool PVRIptvData::LoadPlayList(void)
   {
     PVRIptvChannel channel;
 
-    channel.iUniqueId = c["channel_id"].IsInt() ? c["channel_id"].GetInt() : -1;
+    //to remove the need of holding a channel mapping inside the app, we don't use
+    //the channel_id field anymore but reuse the channel_number
+    channel.iUniqueId = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : -1;
 
     channel.strChannelName    = c["name"].IsString() ? c["name"].GetString() : "";
     channel.iChannelNumber    = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : 0;
