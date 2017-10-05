@@ -24,55 +24,15 @@
  *
  */
 
-#include <sstream>
 #include <string>
-#include <fstream>
 #include <map>
 #include <stdexcept>
-#include "zlib.h"
-#include "rapidxml/rapidxml.hpp"
 #include "PVRIptvData.h"
 #include "p8-platform/util/StringUtils.h"
 #include "CurlHelper.h"
 #include "rapidjson/document.h"
 
-#define TVG_INFO_ID_MARKER      "tvg-id="
-#define TVG_INFO_NAME_MARKER    "tvg-name="
-#define TVG_INFO_LOGO_MARKER    "tvg-logo="
-#define TVG_INFO_SHIFT_MARKER   "tvg-shift="
-#define TVG_INFO_CHNO_MARKER    "tvg-chno="
-#define GROUP_NAME_MARKER       "group-title="
-#define RADIO_MARKER            "radio="
-#define CHANNEL_LOGO_EXTENSION  ".png"
-#define SECONDS_IN_DAY          86400
-#define GENRES_MAP_FILENAME     "genres.xml"
-
 using namespace ADDON;
-using namespace rapidxml;
-
-template<class Ch>
-inline bool GetNodeValue(const xml_node<Ch> * pRootNode, const char* strTag, std::string& strStringValue)
-{
-  xml_node<Ch> *pChildNode = pRootNode->first_node(strTag);
-  if (pChildNode == NULL)
-  {
-    return false;
-  }
-  strStringValue = pChildNode->value();
-  return true;
-}
-
-template<class Ch>
-inline bool GetAttributeValue(const xml_node<Ch> * pNode, const char* strAttributeName, std::string& strStringValue)
-{
-  xml_attribute<Ch> *pAttribute = pNode->first_attribute(strAttributeName);
-  if (pAttribute == NULL)
-  {
-    return false;
-  }
-  strStringValue = pAttribute->value();
-  return true;
-}
 
 PVRIptvData::PVRIptvData(void)
 {
