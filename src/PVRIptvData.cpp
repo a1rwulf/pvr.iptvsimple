@@ -44,12 +44,14 @@ PVRIptvData::PVRIptvData(void)
 
   m_strRestUrl    = g_strRestUrl;
   m_strEpgRestUrl = g_strEpgRestUrl;
+  m_strRadioRestUrl = g_strRadioRestUrl;
 
   m_channels.clear();
   m_groups.clear();
   m_epg.clear();
 
-  LoadPlayList();
+  LoadPlayList(m_strRestUrl, false);
+  LoadPlayList(m_strRadioRestUrl, true);
 
   for (auto const& channel : m_channels)
   {
@@ -78,17 +80,17 @@ void PVRIptvData::ReloadPlayList()
   m_channels.clear();
   m_groups.clear();
 
-  if (LoadPlayList())
+  if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
   {
     PVR->TriggerChannelGroupsUpdate();
     PVR->TriggerChannelUpdate();
   }
 }
 
-bool PVRIptvData::LoadPlayList(void)
+bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
 {
   std::string strChannelsFromUrl("");
-  strChannelsFromUrl = grabChannels(m_strRestUrl);
+  strChannelsFromUrl = grabChannels(url);
 
   rapidjson::Document doc;
   doc.Parse(strChannelsFromUrl.c_str());
@@ -116,9 +118,12 @@ bool PVRIptvData::LoadPlayList(void)
     PVRIptvChannelGroup group;
     if (g["id"].IsInt() && g["name"].IsString())
     {
-      group.iGroupId = g["id"].GetInt();
+      int groupId = g["id"].GetInt();
+      if (bIsRadio)
+        groupId += 1000000;
+      group.iGroupId = groupId;
       group.strGroupName = g["name"].GetString();
-      group.bRadio = false;      //we do not support radio right now
+      group.bRadio = bIsRadio;
       m_groups.push_back(group);
     }
     else
@@ -146,17 +151,22 @@ bool PVRIptvData::LoadPlayList(void)
 
     //to remove the need of holding a channel mapping inside the app, we don't use
     //the channel_id field anymore but reuse the channel_number
-    channel.iUniqueId = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : -1;
+    int channelNr = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : -1;
+
+    if (channelNr != -1 && bIsRadio)
+      channelNr += 1000000;
+
+    channel.iUniqueId = channelNr;
+    channel.iChannelNumber    = channelNr;
 
     channel.strChannelName    = c["name"].IsString() ? c["name"].GetString() : "";
-    channel.iChannelNumber    = c["channel_number"].IsInt() ? c["channel_number"].GetInt() : 0;
     channel.strStreamURL      = c["url"].IsString() ? c["url"].GetString() : "";
     channel.strLogoPath       = c["logo"].IsString() ? c["logo"].GetString() : "";
     channel.strTvgName        = c["name"].IsString() ? c["name"].GetString() : "";
     channel.strTvgLogo        = c["logo"].IsString() ? c["logo"].GetString() : "";
     channel.strTvgId          = "";
     channel.iTvgShift         = 0;
-    channel.bRadio            = false;
+    channel.bRadio            = bIsRadio;
     channel.iEncryptionSystem = 0;
 
     if (c["group"].IsInt())

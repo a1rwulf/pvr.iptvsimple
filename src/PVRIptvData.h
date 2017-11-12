@@ -93,7 +93,7 @@ public:
   virtual void      ReloadEPG();
 
 protected:
-  virtual bool                 LoadPlayList(void);
+  virtual bool                 LoadPlayList(const std::string& url, bool bIsRadio);
   virtual bool                 LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, time_t iEnd);
   virtual PVRIptvChannel*      FindChannel(const std::string &strId, const std::string &strName);
   virtual PVRIptvChannelGroup* FindGroup(const std::string &strName);
@@ -116,4 +116,5 @@ private:
 
   std::string                       m_strRestUrl;
   std::string                       m_strEpgRestUrl;
+  std::string                       m_strRadioRestUrl;
 };
