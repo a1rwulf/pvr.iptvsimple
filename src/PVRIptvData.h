@@ -96,7 +96,7 @@ protected:
   virtual bool                 LoadPlayList(const std::string& url, bool bIsRadio);
   virtual bool                 LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, time_t iEnd);
   virtual PVRIptvChannel*      FindChannel(const std::string &strId, const std::string &strName);
-  virtual PVRIptvChannelGroup* FindGroup(const std::string &strName);
+  virtual PVRIptvChannelGroup* FindGroup(const PVR_CHANNEL_GROUP &group);
   virtual PVRIptvEpgChannel*   FindEpg(const std::string &strId);
   virtual PVRIptvEpgChannel*   FindEpgForChannel(PVRIptvChannel &channel);
   virtual void                 ApplyChannelsLogos();

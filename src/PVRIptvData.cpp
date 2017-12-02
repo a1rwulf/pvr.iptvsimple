@@ -132,7 +132,11 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
     }
   }
 
-  int iChannelIndex = 0;
+  //kodi's internal layout has 1 channel vector for TV and radio
+  //we scan tv first and radio in a second iteration
+  //so let's start at the current m_channel size in order to get
+  //the right index, otherwise we lose radio channels
+  int iChannelIndex = m_channels.size();
   if (!doc.HasMember("channels"))
   {
     XBMC->Log(LOG_ERROR, "Cannot load channels - json response has no channels");
@@ -170,7 +174,20 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
     channel.iEncryptionSystem = 0;
 
     if (c["group"].IsInt())
-      m_groups.at(c["group"].GetInt() - 1).members.push_back(iChannelIndex);
+    {
+      int groupId = c["group"].GetInt();
+      if (bIsRadio)
+        groupId += 1000000;
+      PVRIptvChannelGroup tmp;
+      tmp.iGroupId = groupId;
+
+      std::vector<PVRIptvChannelGroup>::iterator it = find_if(m_groups.begin(), m_groups.end(),
+          [&tmp](const PVRIptvChannelGroup &y) { return y.iGroupId == tmp.iGroupId;});
+
+      if (it != m_groups.end())
+        XBMC->Log(LOG_DEBUG, "Adding channel %s into group %s/%d", channel.strChannelName.c_str(), it->strGroupName.c_str(), it->iGroupId);
+        it->members.push_back(iChannelIndex);
+      }
 
     m_channels.push_back(channel);
     iChannelIndex++;
@@ -329,7 +346,7 @@ PVR_ERROR PVRIptvData::GetChannelGroups(ADDON_HANDLE handle, bool bRadio)
 PVR_ERROR PVRIptvData::GetChannelGroupMembers(ADDON_HANDLE handle, const PVR_CHANNEL_GROUP &group)
 {
   PVRIptvChannelGroup *myGroup;
-  if ((myGroup = FindGroup(group.strGroupName)) != NULL)
+  if ((myGroup = FindGroup(group)) != NULL)
   {
     std::vector<int>::iterator it;
     for (it = myGroup->members.begin(); it != myGroup->members.end(); ++it)
@@ -450,12 +467,12 @@ PVRIptvChannel * PVRIptvData::FindChannel(const std::string &strId, const std::s
   return NULL;
 }
 
-PVRIptvChannelGroup * PVRIptvData::FindGroup(const std::string &strName)
+PVRIptvChannelGroup * PVRIptvData::FindGroup(const PVR_CHANNEL_GROUP &group)
 {
   std::vector<PVRIptvChannelGroup>::iterator it;
   for(it = m_groups.begin(); it < m_groups.end(); ++it)
   {
-    if (it->strGroupName == strName)
+    if (it->strGroupName == group.strGroupName && it->bRadio == group.bIsRadio)
       return &*it;
   }
 
