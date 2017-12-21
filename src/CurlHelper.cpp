@@ -60,8 +60,6 @@ std::string grabChannels(std::string url)
   chunk.memory = (char*)malloc(1);  /* will be grown as needed by the realloc above */
   chunk.size = 0;    /* no data at this point */
 
-  curl_global_init(CURL_GLOBAL_ALL);
-
   /* init the curl session */
   curl_handle = curl_easy_init();
 
@@ -101,11 +99,7 @@ std::string grabChannels(std::string url)
 
   /* cleanup curl stuff */
   curl_easy_cleanup(curl_handle);
-
   free(chunk.memory);
-
-  /* we're done with libcurl, so clean it up */
-  curl_global_cleanup();
 
   return result;
 }
@@ -121,8 +115,6 @@ std::string grabEpg(std::string url)
   chunk.memory = (char*)malloc(1);  /* will be grown as needed by the realloc above */
   chunk.size = 0;    /* no data at this point */
 
-  curl_global_init(CURL_GLOBAL_ALL);
-
   /* init the curl session */
   curl_handle = curl_easy_init();
 
@@ -162,11 +154,7 @@ std::string grabEpg(std::string url)
 
   /* cleanup curl stuff */
   curl_easy_cleanup(curl_handle);
-
   free(chunk.memory);
-
-  /* we're done with libcurl, so clean it up */
-  curl_global_cleanup();
 
   return result;
 }
