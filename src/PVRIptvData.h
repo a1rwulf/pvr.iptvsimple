@@ -117,4 +117,6 @@ private:
   std::string                       m_strRestUrl;
   std::string                       m_strEpgRestUrl;
   std::string                       m_strRadioRestUrl;
+
+  P8PLATFORM::CMutex m_mutex;
 };
