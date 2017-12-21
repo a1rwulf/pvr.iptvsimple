@@ -1,5 +1,9 @@
+V2.3.0
+ - Fix multihreading issues
+
 V2.2.0
  - Radio support
+
 V2.1.0
  - EPG support
 
