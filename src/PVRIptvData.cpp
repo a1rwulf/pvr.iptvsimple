@@ -387,6 +387,15 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     if (myChannel->iUniqueId != (int) channel.iUniqueId)
       continue;
 
+    std::vector<PVRIptvEpgChannel>::iterator epgit;
+    for (epgit = m_epg.begin(); epgit != m_epg.end(); ++epgit)
+    {
+      if (epgit->strId == std::to_string(channel.iChannelNumber))
+      {
+        epgit->epg.clear();
+      }
+    }
+
     //if (iStart > m_iLastStart || iEnd > m_iLastEnd)
     //{
       // reload EPG for new time interval only
