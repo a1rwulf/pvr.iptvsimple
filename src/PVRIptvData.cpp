@@ -212,7 +212,7 @@ void PVRIptvData::ReloadEPG()
   P8PLATFORM::CLockObject lock(m_mutex);
 }
 
-bool PVRIptvData::LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, time_t iEnd)
+bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, time_t iEnd)
 {
   P8PLATFORM::CLockObject lock(m_mutex);
   if (m_epg.size() == 0)
@@ -223,7 +223,7 @@ bool PVRIptvData::LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, t
 
   std::string strEpgFromUrl("");
   std::string strRestUrl = m_strEpgRestUrl;
-  strRestUrl += "?channel_number=" + std::to_string(channel.iChannelNumber);
+  strRestUrl += "?channel_number=" + std::to_string(channelNumber);
   strRestUrl += "&start_time=" + std::to_string(iStart);
   strRestUrl += "&end_time=" + std::to_string(iEnd);
   strEpgFromUrl = grabEpg(strRestUrl);
@@ -238,7 +238,7 @@ bool PVRIptvData::LoadEPGForChannel(const PVR_CHANNEL &channel, time_t iStart, t
   }
 
   PVRIptvEpgChannel *epg = NULL;
-  if ((epg = FindEpg(std::to_string(channel.iChannelNumber))) == NULL)
+  if ((epg = FindEpg(std::to_string(channelNumber))) == NULL)
   {
     XBMC->Log(LOG_ERROR, "Cannot find epg channel");
     return false;
@@ -390,7 +390,7 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     //if (iStart > m_iLastStart || iEnd > m_iLastEnd)
     //{
       // reload EPG for new time interval only
-      LoadEPGForChannel(channel, iStart, iEnd);
+      LoadEPGForChannel(channel.iChannelNumber, iStart, iEnd);
       {
         // doesn't matter is epg loaded or not we shouldn't try to load it for same interval
         m_iLastStart = iStart;
