@@ -80,9 +80,20 @@ void PVRIptvData::ReloadPlayList()
   P8PLATFORM::CLockObject lock(m_mutex);
   m_channels.clear();
   m_groups.clear();
+  m_epg.clear();
 
   if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
   {
+    //reinitialize EPG channels
+    for (auto const& channel : m_channels)
+    {
+      PVRIptvEpgChannel epgChannel;
+      epgChannel.strId = std::to_string(channel.iChannelNumber);
+      epgChannel.strName = channel.strChannelName;
+
+      m_epg.push_back(epgChannel);
+    }
+
     PVR->TriggerChannelGroupsUpdate();
     PVR->TriggerChannelUpdate();
   }
