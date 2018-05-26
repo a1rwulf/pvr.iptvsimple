@@ -1,1 +1,1 @@
-rapidjson http://mirrors.xbmc.org/build-deps/sources/rapidjson-1.1.0.tar.gz
+rapidjson https://github.com/Tencent/rapidjson f54b0e47a08782a6131cc3d60f94d038fa6e0a51
