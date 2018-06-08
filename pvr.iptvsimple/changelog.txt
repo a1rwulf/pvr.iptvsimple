@@ -1,3 +1,6 @@
+V2.4.0
+ - Update API to 5.10
+
 V2.3.0
  - Fix multihreading issues
 

@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <addon
   id="pvr.omniyontv"
-  version="2.3.0"
+  version="2.4.0"
   name="Omniyon IPTV Client"
   provider-name="YachtCloud">
-  <requires>@ADDON_DEPENDS@</requires>
+ <requires>@ADDON_DEPENDS@</requires>
   <extension
     point="xbmc.pvrclient"
     library_@PLATFORM@="@LIBRARY_FILENAME@"/>
