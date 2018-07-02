@@ -2,8 +2,8 @@
 <settings>
   <category label="30000">
     <setting id="sep1" label="30000" type="lsep"/>
-    <setting id="restapiurl" type="text" label="30001" default="http://omniyon.local/rest/tv/channels/kodi" />
+    <setting id="restapiurl" type="text" label="30001" default="http://omniyon.local:10101/getChannels" />
     <setting id="epgapiurl" type="text" label="30002" default="http://omniyon.local/rest/tv/programs/kodi" />
-    <setting id="radioapiurl" type="text" label="30003" default="http://omniyon.local/rest/radio/channels/kodi" />
+    <setting id="radioapiurl" type="text" label="30003" default="http://omniyon.local:10101/getChannels?radio=true" />
   </category>
 </settings>
