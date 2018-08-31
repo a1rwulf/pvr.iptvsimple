@@ -110,6 +110,7 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
   if (!doc.IsObject())
   {
     XBMC->Log(LOG_ERROR, "Cannot load channels - Invalid json format");
+    XBMC->Log(LOG_ERROR, "Response was: %s", strChannelsFromUrl.c_str());
     return false;
   }
   
@@ -245,6 +246,7 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
   if (!doc.IsArray())
   {
     XBMC->Log(LOG_ERROR, "Cannot load epg - Invalid json format");
+    XBMC->Log(LOG_ERROR, "Response was: %s", strEpgFromUrl.c_str());
     return false;
   }
 
