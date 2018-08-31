@@ -326,6 +326,7 @@ bool PVRIptvData::GetChannel(const PVR_CHANNEL &channel, PVRIptvChannel &myChann
       myChannel.strChannelName    = thisChannel.strChannelName;
       myChannel.strLogoPath       = thisChannel.strLogoPath;
       myChannel.strStreamURL      = thisChannel.strStreamURL;
+      myChannel.properties        = thisChannel.properties;
 
       return true;
     }

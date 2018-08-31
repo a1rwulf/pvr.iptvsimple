@@ -25,6 +25,7 @@
  *
  */
 
+#include <map>
 #include <vector>
 #include "p8-platform/util/StdString.h"
 #include "client.h"
@@ -66,6 +67,7 @@ struct PVRIptvChannel
   std::string strTvgId;
   std::string strTvgName;
   std::string strTvgLogo;
+  std::map<std::string, std::string> properties;
 };
 
 struct PVRIptvChannelGroup
