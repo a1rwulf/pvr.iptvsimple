@@ -198,23 +198,19 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
           [&tmp](const PVRIptvChannelGroup &y) { return y.iGroupId == tmp.iGroupId;});
 
       if (it != m_groups.end())
+      {
         XBMC->Log(LOG_DEBUG, "Adding channel %s into group %s/%d", channel.strChannelName.c_str(), it->strGroupName.c_str(), it->iGroupId);
         it->members.push_back(iChannelIndex);
       }
+    }
 
     m_channels.push_back(channel);
     iChannelIndex++;
   }
 
-  if (m_channels.size() == 0)
-  {
-    XBMC->Log(LOG_ERROR, "Unable to load channels - response parsed but no channels?");
-    return false;
-  }
-
   ApplyChannelsLogos();
 
-  XBMC->Log(LOG_NOTICE, "Loaded %d channels.", m_channels.size());
+  XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", m_channels.size(), bIsRadio ? "radio" : "tv" );
   return true;
 }
 
