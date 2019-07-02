@@ -152,6 +152,7 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
   //so let's start at the current m_channel size in order to get
   //the right index, otherwise we lose radio channels
   int iChannelIndex = m_channels.size();
+  int iRadioChannels = 0;
   if (!doc.HasMember("channels"))
   {
     XBMC->Log(LOG_ERROR, "Cannot load channels - json response has no channels");
@@ -192,7 +193,11 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
     {
       int groupId = c["group"].GetInt();
       if (bIsRadio)
+      {
+        iRadioChannels++;
         groupId += 1000000;
+      }
+
       PVRIptvChannelGroup tmp;
       tmp.iGroupId = groupId;
 
@@ -212,7 +217,10 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
 
   ApplyChannelsLogos();
 
-  XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", m_channels.size(), bIsRadio ? "radio" : "tv" );
+  if (bIsRadio)
+    XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", iRadioChannels, bIsRadio ? "radio" : "tv" );
+  else
+    XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", m_channels.size() - iRadioChannels, bIsRadio ? "radio" : "tv" );
   return true;
 }
 
