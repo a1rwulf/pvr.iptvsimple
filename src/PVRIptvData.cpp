@@ -402,7 +402,7 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     std::vector<PVRIptvEpgChannel>::iterator epgit;
     for (epgit = m_epg.begin(); epgit != m_epg.end(); ++epgit)
     {
-      if (epgit->strId == std::to_string(channel.iChannelNumber))
+      if (epgit->strId == std::to_string(channel.iUniqueId))
       {
         epgit->epg.clear();
       }
@@ -411,7 +411,7 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     //if (iStart > m_iLastStart || iEnd > m_iLastEnd)
     //{
       // reload EPG for new time interval only
-      LoadEPGForChannel(channel.iChannelNumber, iStart, iEnd);
+      LoadEPGForChannel(channel.iUniqueId, iStart, iEnd);
       {
         // doesn't matter is epg loaded or not we shouldn't try to load it for same interval
         m_iLastStart = iStart;
