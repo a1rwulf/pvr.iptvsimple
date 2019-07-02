@@ -96,6 +96,8 @@ void PVRIptvData::ReloadPlayList()
 
     PVR->TriggerChannelGroupsUpdate();
     PVR->TriggerChannelUpdate();
+    for (auto const& channel : m_channels)
+      PVR->TriggerEpgUpdate(channel.iUniqueId);
   }
 }
 
