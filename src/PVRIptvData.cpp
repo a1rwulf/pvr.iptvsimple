@@ -246,15 +246,15 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
   strRestUrl += "&end_time=" + std::to_string(iEnd);
   strEpgFromUrl = grabEpg(strRestUrl);
 
-  XBMC->Log(LOG_NOTICE, "EPG request: %s", strRestUrl.c_str());
+  XBMC->Log(LOG_DEBUG, "EPG request: %s", strRestUrl.c_str());
 
   rapidjson::Document doc;
   doc.Parse(strEpgFromUrl.c_str());
 
   if (!doc.IsArray())
   {
-    XBMC->Log(LOG_ERROR, "Cannot load epg - Response is not the expected array");
-    XBMC->Log(LOG_ERROR, "Response was: %s", strEpgFromUrl.c_str());
+    XBMC->Log(LOG_DEBUG, "Cannot load epg - Response is not the expected array");
+    XBMC->Log(LOG_DEBUG, "Response was: %s", strEpgFromUrl.c_str());
     return false;
   }
 
@@ -284,7 +284,7 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
     epg->epg.push_back(entry);
   }
 
-  XBMC->Log(LOG_NOTICE, "EPG Loaded.");
+  XBMC->Log(LOG_DEBUG, "EPG Loaded.");
 
   return true;
 }
