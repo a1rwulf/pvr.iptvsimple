@@ -50,8 +50,27 @@ PVRIptvData::PVRIptvData(void)
   m_groups.clear();
   m_epg.clear();
 
-  LoadPlayList(m_strRestUrl, false);
-  LoadPlayList(m_strRadioRestUrl, true);
+  // This is not the best solution ever, but it should be quite
+  // sufficient:
+  // In case our server is not running (which should only be for short intervalls)
+  // when we experience issues or update the docker, we need to make
+  // sure to try more the initial channel retrieval more often.
+  // curl_easy_perform() failed: Couldn't connect to server
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  //
+  // Curl seems to need some time to recover when it cannot connect, hence
+  // we try 12 times and have a pretty big delay between calls, so that curl
+  // can handle it.
+  unsigned int retries = 30;
+  while (retries > 0)
+  {
+    if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
+      break;
+    Sleep(2000);
+    retries--;
+  }
 
   for (auto const& channel : m_channels)
   {
