@@ -50,8 +50,27 @@ PVRIptvData::PVRIptvData(void)
   m_groups.clear();
   m_epg.clear();
 
-  LoadPlayList(m_strRestUrl, false);
-  LoadPlayList(m_strRadioRestUrl, true);
+  // This is not the best solution ever, but it should be quite
+  // sufficient:
+  // In case our server is not running (which should only be for short intervalls)
+  // when we experience issues or update the docker, we need to make
+  // sure to try more the initial channel retrieval more often.
+  // curl_easy_perform() failed: Couldn't connect to server
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  // curl_easy_perform() failed: Failure when receiving data from the peer
+  //
+  // Curl seems to need some time to recover when it cannot connect, hence
+  // we try 12 times and have a pretty big delay between calls, so that curl
+  // can handle it.
+  unsigned int retries = 30;
+  while (retries > 0)
+  {
+    if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
+      break;
+    Sleep(2000);
+    retries--;
+  }
 
   for (auto const& channel : m_channels)
   {
@@ -96,6 +115,8 @@ void PVRIptvData::ReloadPlayList()
 
     PVR->TriggerChannelGroupsUpdate();
     PVR->TriggerChannelUpdate();
+    for (auto const& channel : m_channels)
+      PVR->TriggerEpgUpdate(channel.iUniqueId);
   }
 }
 
@@ -150,6 +171,7 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
   //so let's start at the current m_channel size in order to get
   //the right index, otherwise we lose radio channels
   int iChannelIndex = m_channels.size();
+  int iRadioChannels = 0;
   if (!doc.HasMember("channels"))
   {
     XBMC->Log(LOG_ERROR, "Cannot load channels - json response has no channels");
@@ -190,7 +212,11 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
     {
       int groupId = c["group"].GetInt();
       if (bIsRadio)
+      {
+        iRadioChannels++;
         groupId += 1000000;
+      }
+
       PVRIptvChannelGroup tmp;
       tmp.iGroupId = groupId;
 
@@ -210,7 +236,10 @@ bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
 
   ApplyChannelsLogos();
 
-  XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", m_channels.size(), bIsRadio ? "radio" : "tv" );
+  if (bIsRadio)
+    XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", iRadioChannels, bIsRadio ? "radio" : "tv" );
+  else
+    XBMC->Log(LOG_NOTICE, "Loaded %d %s channels.", m_channels.size() - iRadioChannels, bIsRadio ? "radio" : "tv" );
   return true;
 }
 
@@ -236,15 +265,15 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
   strRestUrl += "&end_time=" + std::to_string(iEnd);
   strEpgFromUrl = grabEpg(strRestUrl);
 
-  XBMC->Log(LOG_NOTICE, "EPG request: %s", strRestUrl.c_str());
+  XBMC->Log(LOG_DEBUG, "EPG request: %s", strRestUrl.c_str());
 
   rapidjson::Document doc;
   doc.Parse(strEpgFromUrl.c_str());
 
   if (!doc.IsArray())
   {
-    XBMC->Log(LOG_ERROR, "Cannot load epg - Response is not the expected array");
-    XBMC->Log(LOG_ERROR, "Response was: %s", strEpgFromUrl.c_str());
+    XBMC->Log(LOG_DEBUG, "Cannot load epg - Response is not the expected array");
+    XBMC->Log(LOG_DEBUG, "Response was: %s", strEpgFromUrl.c_str());
     return false;
   }
 
@@ -274,7 +303,7 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
     epg->epg.push_back(entry);
   }
 
-  XBMC->Log(LOG_NOTICE, "EPG Loaded.");
+  XBMC->Log(LOG_DEBUG, "EPG Loaded.");
 
   return true;
 }
@@ -402,7 +431,7 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     std::vector<PVRIptvEpgChannel>::iterator epgit;
     for (epgit = m_epg.begin(); epgit != m_epg.end(); ++epgit)
     {
-      if (epgit->strId == std::to_string(channel.iChannelNumber))
+      if (epgit->strId == std::to_string(channel.iUniqueId))
       {
         epgit->epg.clear();
       }
@@ -411,7 +440,7 @@ PVR_ERROR PVRIptvData::GetEPGForChannel(ADDON_HANDLE handle, const PVR_CHANNEL &
     //if (iStart > m_iLastStart || iEnd > m_iLastEnd)
     //{
       // reload EPG for new time interval only
-      LoadEPGForChannel(channel.iChannelNumber, iStart, iEnd);
+      LoadEPGForChannel(channel.iUniqueId, iStart, iEnd);
       {
         // doesn't matter is epg loaded or not we shouldn't try to load it for same interval
         m_iLastStart = iStart;
