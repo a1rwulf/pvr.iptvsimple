@@ -49,12 +49,10 @@ static size_t WriteMemoryCallback(void *contents, size_t size, size_t nmemb, voi
   return realsize;
 }
 
-std::string grabChannels(std::string url)
+CURLcode grabChannels(std::string url, std::string& response)
 {
   CURL *curl_handle;
   CURLcode res;
-  std::string result("");
-
   struct MemoryStruct chunk;
 
   chunk.memory = (char*)malloc(1);  /* will be grown as needed by the realloc above */
@@ -93,23 +91,20 @@ std::string grabChannels(std::string url)
      */
 
     printf("%lu bytes retrieved\n", (long)chunk.size);
-    result = chunk.memory;
-
+    response = chunk.memory;
   }
 
   /* cleanup curl stuff */
   curl_easy_cleanup(curl_handle);
   free(chunk.memory);
 
-  return result;
+  return res;
 }
 
-std::string grabEpg(std::string url)
+CURLcode grabEpg(std::string url, std::string& response)
 {
   CURL *curl_handle;
   CURLcode res;
-  std::string result("");
-
   struct MemoryStruct chunk;
 
   chunk.memory = (char*)malloc(1);  /* will be grown as needed by the realloc above */
@@ -148,7 +143,7 @@ std::string grabEpg(std::string url)
      */
 
     printf("%lu bytes retrieved\n", (long)chunk.size);
-    result = chunk.memory;
+    response = chunk.memory;
 
   }
 
@@ -156,5 +151,5 @@ std::string grabEpg(std::string url)
   curl_easy_cleanup(curl_handle);
   free(chunk.memory);
 
-  return result;
+  return res;
 }

@@ -27,6 +27,7 @@
 #include <string>
 #include <map>
 #include <stdexcept>
+#include <curl/curl.h>
 #include "PVRIptvData.h"
 #include "p8-platform/util/StringUtils.h"
 #include "CurlHelper.h"
@@ -66,8 +67,23 @@ PVRIptvData::PVRIptvData(void)
   unsigned int retries = 30;
   while (retries > 0)
   {
-    if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
+    std::string tvResponse;
+    std::string radioResonse;
+
+    CURLcode tvresp = grabChannels(m_strRestUrl, tvResponse);
+    if (tvresp != CURLE_OK)
+      XBMC->Log(LOG_ERROR, "Loading TV channels failed: %s", curl_easy_strerror(tvresp));
+
+    CURLcode radioresp = grabChannels(m_strRadioRestUrl, radioResonse);
+    if (radioresp != CURLE_OK)
+      XBMC->Log(LOG_ERROR, "Loading Radio channels failed: %s", curl_easy_strerror(radioresp));
+
+    if (tvresp != CURLE_OK || radioresp != CURLE_OK)
+      continue;
+
+    if (LoadPlayList(tvResponse, false) && LoadPlayList(radioResonse, true))
       break;
+
     Sleep(2000);
     retries--;
   }
@@ -97,11 +113,27 @@ PVRIptvData::~PVRIptvData(void)
 void PVRIptvData::ReloadPlayList()
 {
   P8PLATFORM::CLockObject lock(m_mutex);
+
+  std::string tvResponse;
+  std::string radioResonse;
+
+  CURLcode tvresp = grabChannels(m_strRestUrl, tvResponse);
+  if (tvresp != CURLE_OK)
+    XBMC->Log(LOG_ERROR, "Loading TV channels failed: %s", curl_easy_strerror(tvresp));
+
+  CURLcode radioresp = grabChannels(m_strRadioRestUrl, radioResonse);
+  if (radioresp != CURLE_OK)
+    XBMC->Log(LOG_ERROR, "Loading Radio channels failed: %s", curl_easy_strerror(radioresp));
+
+  if (tvresp != CURLE_OK || radioresp != CURLE_OK)
+    return;
+
+  // If we don't get an error when we ask for the data
   m_channels.clear();
   m_groups.clear();
   m_epg.clear();
 
-  if (LoadPlayList(m_strRestUrl, false) && LoadPlayList(m_strRadioRestUrl, true))
+  if (LoadPlayList(tvResponse, false) && LoadPlayList(radioResonse, true))
   {
     //reinitialize EPG channels
     for (auto const& channel : m_channels)
@@ -120,12 +152,11 @@ void PVRIptvData::ReloadPlayList()
   }
 }
 
-bool PVRIptvData::LoadPlayList(const std::string& url, bool bIsRadio)
+bool PVRIptvData::LoadPlayList(const std::string& data, bool bIsRadio)
 {
-  std::string strChannelsFromUrl("");
-  strChannelsFromUrl = grabChannels(url);
-
+  std::string strChannelsFromUrl = data;
   rapidjson::Document doc;
+
   doc.Parse(strChannelsFromUrl.c_str());
 
   if (!doc.IsObject())
@@ -263,9 +294,15 @@ bool PVRIptvData::LoadEPGForChannel(unsigned int channelNumber, time_t iStart, t
   strRestUrl += "?channel_number=" + std::to_string(channelNumber);
   strRestUrl += "&start_time=" + std::to_string(iStart);
   strRestUrl += "&end_time=" + std::to_string(iEnd);
-  strEpgFromUrl = grabEpg(strRestUrl);
 
   XBMC->Log(LOG_DEBUG, "EPG request: %s", strRestUrl.c_str());
+  CURLcode res = grabEpg(strRestUrl, strEpgFromUrl);
+
+  if (res != CURLE_OK)
+  {
+    XBMC->Log(LOG_ERROR, "Loading EPG channels failed: %s", curl_easy_strerror(res));
+    return false;
+  }
 
   rapidjson::Document doc;
   doc.Parse(strEpgFromUrl.c_str());
