@@ -81,6 +81,7 @@ PVRIptvData::PVRIptvData(void)
     if (tvresp != CURLE_OK || radioresp != CURLE_OK)
     {
       Sleep(2000);
+      retries--;
       continue;
     }
 
@@ -159,6 +160,12 @@ bool PVRIptvData::LoadPlayList(const std::string& data, bool bIsRadio)
 {
   std::string strChannelsFromUrl = data;
   rapidjson::Document doc;
+
+  if (data.empty())
+  {
+    XBMC->Log(LOG_ERROR, "Cannot load channels - Response is empty");
+    return false;
+  }
 
   doc.Parse(strChannelsFromUrl.c_str());
 
