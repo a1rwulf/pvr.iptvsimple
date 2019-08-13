@@ -79,7 +79,10 @@ PVRIptvData::PVRIptvData(void)
       XBMC->Log(LOG_ERROR, "Loading Radio channels failed: %s", curl_easy_strerror(radioresp));
 
     if (tvresp != CURLE_OK || radioresp != CURLE_OK)
+    {
+      Sleep(2000);
       continue;
+    }
 
     if (LoadPlayList(tvResponse, false) && LoadPlayList(radioResonse, true))
       break;
