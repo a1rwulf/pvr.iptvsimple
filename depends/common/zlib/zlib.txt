@@ -1,1 +1,1 @@
-zlib https://github.com/madler/zlib 30a1c7065dc1dc2c2ed68ed403792b660bfdd805
+zlib https://github.com/madler/zlib v1.2.11
