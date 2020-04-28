@@ -1,1 +1,1 @@
-curl https://github.com/xbmc/curl f2cb3a01192d36395d16acec6cdb93446ca6fd45
+curl https://github.com/a1rwulf/curl 6370e43153b99893247c0904bf43bd0f83af8141
