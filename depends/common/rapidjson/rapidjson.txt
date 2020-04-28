@@ -1,1 +1,1 @@
-rapidjson https://github.com/Tencent/rapidjson f54b0e47a08782a6131cc3d60f94d038fa6e0a51
+rapidjson https://github.com/Tencent/rapidjson 8f4c021fa2f1e001d2376095928fc0532adf2ae6
