@@ -8,8 +8,8 @@
 
 #pragma once
 
-#include <kodi/libXBMC_addon.h>
-#include <kodi/libXBMC_pvr.h>
+#include <playa/libXBMC_addon.h>
+#include <playa/libXBMC_pvr.h>
 
 extern ADDON::CHelper_libXBMC_addon* XBMC;
 extern CHelper_libXBMC_pvr* PVR;

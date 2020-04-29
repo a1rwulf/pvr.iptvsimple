@@ -17,7 +17,7 @@
 
 #include <algorithm>
 
-#include <kodi/xbmc_pvr_dll.h>
+#include <playa/xbmc_pvr_dll.h>
 #include <p8-platform/util/StringUtils.h>
 
 using namespace ADDON;

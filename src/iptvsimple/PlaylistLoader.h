@@ -13,7 +13,7 @@
 
 #include <string>
 
-#include <kodi/libXBMC_pvr.h>
+#include <playa/libXBMC_pvr.h>
 
 namespace iptvsimple
 {

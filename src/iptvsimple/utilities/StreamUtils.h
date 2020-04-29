@@ -14,7 +14,7 @@
 #include <map>
 #include <string>
 
-#include <kodi/xbmc_pvr_types.h>
+#include <playa/xbmc_pvr_types.h>
 
 namespace iptvsimple
 {

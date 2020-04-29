@@ -11,7 +11,7 @@
 #include "../../client.h"
 #include "../Settings.h"
 
-#include <kodi/libXBMC_addon.h>
+#include <playa/libXBMC_addon.h>
 #include <zlib.h>
 
 using namespace iptvsimple;

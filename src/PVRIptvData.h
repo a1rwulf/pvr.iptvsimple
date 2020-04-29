@@ -19,7 +19,7 @@
 #include <mutex>
 #include <thread>
 
-#include <kodi/libXBMC_pvr.h>
+#include <playa/libXBMC_pvr.h>
 
 class PVRIptvData
 {

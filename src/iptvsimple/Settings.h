@@ -14,7 +14,7 @@
 #include <string>
 #include <type_traits>
 
-#include <kodi/AddonBase.h>
+#include <playa/AddonBase.h>
 
 namespace iptvsimple
 {
